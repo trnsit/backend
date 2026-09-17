@@ -46,3 +46,6 @@ htmlcov/
 # OS files
 .DS_Store
 Thumbs.db
+
+# The frontend
+frontend/
