@@ -1,6 +1,6 @@
 import httpx
 
-from app.core.config import settings
+from ...config import settings
 
 class BaseAgent:
     def __init__(self, model_name: str | None = None, base_url: str | None = None):

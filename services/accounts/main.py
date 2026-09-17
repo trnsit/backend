@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
-from app.core.config import settings
-
+from .config import settings
 from .routes import router as user_router
 from .google_oauth_routes import router as google_oauth_router
 from .github_oauth_routes import router as github_oauth_router

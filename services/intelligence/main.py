@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.core.config import settings
+from .config import settings
 from .routes import router as intelligence_router
 
 app = FastAPI(

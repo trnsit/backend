@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
+from .config import settings
 from .db.session import get_session
 from app.security.jwt import create_access_token, decode_access_token
 from .dependencies import get_current_user
