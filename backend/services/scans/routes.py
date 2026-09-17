@@ -36,10 +36,10 @@ async def trigger_scan(
     # 2. Fetch GitHub token via internal client
     token = await accounts_client.get_github_token(user.id)
 
-    if not token:
+    if not token and repo.is_private:
         raise HTTPException(
             status_code=400,
-            detail='GitHub account not connected. Please connect your GitHub account first.'
+            detail='GitHub account not connected. Please connect your GitHub account to scan private repositories.'
         )
 
     # 3. Trigger the scan

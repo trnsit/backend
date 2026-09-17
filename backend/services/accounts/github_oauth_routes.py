@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.session import get_session
+from .db.session import get_session
 from app.security.jwt import create_access_token, decode_access_token
 from .dependencies import get_current_user
 from .models import User, UserOAuthToken

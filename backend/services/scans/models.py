@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import String, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base
+from .db.base import Base
 
 class Scan(Base):
     __tablename__ = 'scans'
@@ -16,12 +16,13 @@ class Scan(Base):
     )
 
     user_id: Mapped[UUID] = mapped_column(
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     repository_id: Mapped[UUID] = mapped_column(
-        ForeignKey('repositories.id', ondelete='CASCADE'),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     status: Mapped[str] = mapped_column(
