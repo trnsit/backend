@@ -5,7 +5,6 @@ import zipfile
 import shutil
 import tempfile
 import httpx
-import asyncio
 
 from uuid import UUID
 
@@ -15,7 +14,7 @@ from fastapi import HTTPException, BackgroundTasks
 
 from .models import Scan
 from .store import ScanStore
-from .agent import ScanIntelligenceAgent
+from .clients.intelligence import IntelligenceClient
 
 # CRYPTOGRAPHIC RULES/REGEXES FOR DETECTION AND CLASSIFICATION:
 """ We are creating a specific compiled pattern (a specific "detector") for each cryptographic algorithm family.
@@ -160,8 +159,9 @@ class PythonCryptoVisitor(ast.NodeVisitor):
 
 
 class ScanService:
-    def __init__(self, scan_store: ScanStore):
+    def __init__(self, scan_store: ScanStore, intelligence_client: IntelligenceClient | None = None):
         self.scan_store = scan_store
+        self.intelligence_client = intelligence_client or IntelligenceClient()
         self.scannable_extensions = {
             '.py', '.js', '.ts', '.go', '.java', '.cpp', '.c', 
             '.rs', '.cs', '.php', '.rb', '.swift', '.kt', '.h'
@@ -233,35 +233,22 @@ class ScanService:
 
             # AI INTELLIGENCE AGENT ENRICHMENT
             if findings_data:
-                agent = ScanIntelligenceAgent()
-                semaphore = asyncio.Semaphore(3)  # Limits concurrent Ollama requests to 3
+                # Pre-populate code context for each finding
+                for finding in findings_data:
+                    finding["code_context"] = self._get_code_context(
+                        temp_dir=temp_dir,
+                        file_path=finding["file"],
+                        line_number=finding["line_number"]
+                    )
 
-                async def process_finding(finding: dict):
-                    async with semaphore:
-                        # Extract the code context around the matched line
-                        context = self._get_code_context(
-                            temp_dir=temp_dir, 
-                            file_path=finding['file'], 
-                            line_number=finding['line_number']
-                        )
+                # Send batch to the Intelligence microservice
+                audit_results = await self.intelligence_client.audit_batch(findings_data)
 
-                        # Ask Ollama to audit it
-                        audit = await agent.analyze_finding(
-                            file_path=finding['file'],
-                            line_number=finding['line_number'],
-                            category=finding['category'],
-                            algorithm=finding['algorithm'],
-                            matched_line=finding['line_content'],
-                            code_context=context
-                        )
-
-                        # Enrich the finding dict
-                        finding['is_false_positive'] = audit.is_false_positive
-                        finding['agent_explanation'] = audit.agent_explanation
-                        finding['suggested_explanation'] = audit.suggested_explanation
-
-                # Run AI analysis for all findings concurrently (gated by semaphore)
-                await asyncio.gather(*(process_finding(f) for f in findings_data))
+                # Enrich findings with results
+                for finding, audit in zip(findings_data, audit_results):
+                    finding["is_false_positive"] = audit.is_false_positive
+                    finding["agent_explanation"] = audit.agent_explanation
+                    finding["suggested_explanation"] = audit.suggested_explanation
 
             await self.scan_store.save_findings(scan_id, findings_data)
             await self.scan_store.update_status(

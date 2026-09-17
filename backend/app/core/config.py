@@ -6,8 +6,6 @@ ENV_FILE_PATH = Path(__file__).resolve().parents[2] / ".env"
 
 # Create the settings class for the app
 class Settings(BaseSettings):
-    app_name: str
-    app_version: str
     debug: bool
 
     # Database URLs for Decoupled Microservices

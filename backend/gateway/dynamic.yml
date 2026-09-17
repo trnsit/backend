@@ -1,0 +1,110 @@
+http:
+  # INCOMING TRAFFIC RULES
+  routers:
+    accounts-router:
+      rule: 'PathPrefix(`/api/v1/auth`) || PathPrefix(`/api/v1/users`) || PathPrefix(`/api/v1/login`) || PathPrefix(`/api/v1/register`)'
+
+      entryPoints:
+        - web
+
+      middlewares:
+        - cors-headers
+        - auth-login-rewrite
+        - api-strip
+
+      service: accounts-service
+
+    repositories-router:
+      rule: 'PathPrefix(`/api/v1/repositories`)'
+
+      entryPoints:
+        - web
+
+      middlewares:
+        - cors-headers
+        - api-strip
+
+      service: repositories-service
+
+    scans-router:
+      rule: 'PathPrefix(`/api/v1/scans`)'
+
+      entryPoints:
+        - web
+
+      middlewares:
+        - cors-headers
+        - api-strip
+
+      service: scans-service
+
+    intelligence-router:
+      rule: 'PathPrefix(`/api/v1/intelligence`)'
+
+      entryPoints:
+        - web
+
+      middlewares:
+        - cors-headers
+        - api-strip
+
+      service: intelligence-service
+
+  # HEADERS & PATH TRANSFORMATIONS
+  middlewares:
+    # Strips '/api/v1' so microservices receive clean paths (/repositories, /scans, etc.).
+    api-strip:
+      stripPrefix:
+        prefixes:
+          - '/api/v1'
+
+    # Rewrites /api/v1/auth/login or /api/v1/auth/register to /login or /register.
+    auth-login-rewrite:
+      replacePathRegex:
+        regex: '^/api/v1/auth/(login|register)(.*)'
+
+        replacement: '/$1$2'
+
+    # CORS Headers for frontend applications.
+    cors-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+
+        accessControlAllowOriginList:
+          - "http://localhost:3000"
+          - "http://127.0.0.1:3000"
+          - "http://localhost:5173"
+          - "http://127.0.0.1:5173"
+
+        accessControlAllowHeaders:
+          - "*"
+
+        accessControlAllowCredentials: true
+
+  # MICROSERVICE DESTINATION URLS
+  services:
+    accounts-service:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8001"
+
+    repositories-service:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8002"
+
+    scans-service:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8003"
+
+    intelligence-service:
+      loadBalancer:
+        servers:
+          - url: 'http://127.0.0.1:8004'

@@ -14,7 +14,7 @@ api:
 # FILE PROVIDERS
 providers:
   file:
-    filename: 'C:/Users/Hisham Ali/Documents/Transit/backend/gateway/dynamic.yml'
+    filename: 'dynamic.yml'
     watch: true # Watch 'dynamic.yml' for live routing changes without restarting
 
 # LOGGING LEVEL
