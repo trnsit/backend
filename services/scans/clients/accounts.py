@@ -5,6 +5,8 @@ from uuid import UUID
 
 from fastapi import HTTPException
 
+from services.scans.config import settings
+
 class AccountsClient:
     def __init__(self, base_url: str | None = None):
         self.base_url = base_url or os.getenv('ACCOUNTS_SERVICE_URL', 'http://127.0.0.1:8001')
@@ -14,6 +16,7 @@ class AccountsClient:
             try:
                 response = await client.get(
                     f'{self.base_url}/internal/users/{user_id}/tokens/github',
+                    headers={'X-Internal-Token': settings.secret_key},
                     timeout=10.0
                 )
 

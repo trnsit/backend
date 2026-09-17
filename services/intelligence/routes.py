@@ -1,12 +1,14 @@
 from fastapi import Depends, APIRouter, status
 
+from app.core.dependencies import verify_internal_token
 from .agents.audit.schemas import FindingAuditRequest, FindingAuditResponse, BatchAuditRequest, BatchAuditResponse
 from .service import IntelligenceService
 from .dependencies import get_intelligence_service
 
 router = APIRouter(
     prefix='/intelligence',
-    tags=['intelligence']
+    tags=['intelligence'],
+    dependencies=[Depends(verify_internal_token)]
 )
 
 @router.post('/audit', response_model=FindingAuditResponse, status_code=status.HTTP_200_OK)

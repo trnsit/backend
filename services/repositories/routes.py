@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import Depends, APIRouter, status, HTTPException
 
-from app.core.dependencies import CurrentUser, get_current_user
+from app.core.dependencies import CurrentUser, get_current_user, verify_internal_token
 from .dependencies import get_repository_service, get_accounts_client
 from .clients.accounts import AccountsClient
 from .schemas import RepositoryCreate, RepositoryUpdate, RepositoryResponse
@@ -45,6 +45,6 @@ async def list_remote_github_repositories(user: CurrentUser = Depends(get_curren
     return await service.list_github_repositories(token)
 
 # INTERNAL COMMUNICATION ENDPOINT:
-@router.get('/internal/users/{user_id}/repositories/{repository_id}', response_model=RepositoryResponse)
+@router.get('/internal/users/{user_id}/repositories/{repository_id}', response_model=RepositoryResponse, dependencies=[Depends(verify_internal_token)])
 async def get_internal_repository(repository_id: UUID, user_id: UUID, service: RepositoryService = Depends(get_repository_service)):
     return await service.get_by_id(user_id, repository_id)

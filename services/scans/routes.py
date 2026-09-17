@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status, BackgroundTasks, HTTPException
 
-from app.core.dependencies import CurrentUser, get_current_user
+from app.core.dependencies import CurrentUser, get_current_user, verify_internal_token
 from .dependencies import get_scan_service, get_accounts_client, get_repositories_client
 from .clients.accounts import AccountsClient
 from .clients.repositories import RepositoriesClient

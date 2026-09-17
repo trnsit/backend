@@ -7,6 +7,8 @@ from fastapi import HTTPException
 
 from pydantic import BaseModel
 
+from services.scans.config import settings
+
 class RepositoryInfo(BaseModel):
     id: UUID
     full_name: str
@@ -21,6 +23,7 @@ class RepositoriesClient:
             try:
                 response = await client.get(
                     f'{self.base_url}/repositories/internal/users/{user_id}/repositories/{repository_id}',
+                    headers={'X-Internal-Token': settings.secret_key},
                     timeout=10.0
                 )
 

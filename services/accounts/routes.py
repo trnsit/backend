@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.security.jwt import create_access_token
+from app.core.dependencies import verify_internal_token
 from .dependencies import get_user_service, get_current_user
 from .schemas import UserCreate, UserResponse, Token, Login
 from .service import UserService
@@ -27,7 +28,7 @@ async def profile(current_user = Depends(get_current_user)):
     return current_user
 
 # INTERNAL COMMUNICATION ENDPOINT:
-@router.get('/internal/users/{user_id}/tokens/{provider}')
+@router.get('/internal/users/{user_id}/tokens/{provider}', dependencies=[Depends(verify_internal_token)]) # Runs the dependency even before someone accessess the endpoint.
 async def get_user_auth_token(user_id: UUID, provider: str, service: UserService = Depends(get_user_service)):
     token = await service.get_oauth_token(user_id, provider)
 

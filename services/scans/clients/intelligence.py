@@ -3,6 +3,8 @@ import httpx
 
 from pydantic import BaseModel
 
+from services.scans.config import settings
+
 class AuditResult(BaseModel):
     is_false_positive: bool
     agent_explanation: str
@@ -31,6 +33,7 @@ class IntelligenceClient:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f'{self.base_url}/intelligence/audit/batch',
+                    headers={'X-Internal-Token': settings.secret_key},
                     json=payload,
                     timeout=180.0 # Generous timeout for LLM processing
                 )
