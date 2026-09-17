@@ -10,3 +10,7 @@ app = FastAPI(
 )
 
 app.include_router(intelligence_router)
+
+@app.get('/health', tags=['health'])
+async def health():
+    return {'status': 'healthy', 'service': 'intelligence'}

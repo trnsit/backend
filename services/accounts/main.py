@@ -14,3 +14,7 @@ app = FastAPI(
 app.include_router(user_router)
 app.include_router(google_oauth_router)
 app.include_router(github_oauth_router)
+
+@app.get('/health', tags=['health'])
+async def health():
+    return {'status': 'healthy', 'service': 'accounts'}
