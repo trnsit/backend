@@ -2,10 +2,10 @@ from datetime import datetime
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import String, Boolean, DateTime, func, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Boolean, DateTime, func
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.base import Base
+from .db.base import Base
 
 class Repository(Base):
     __tablename__ = 'repositories'
@@ -16,8 +16,8 @@ class Repository(Base):
     )
 
     user_id: Mapped[UUID] = mapped_column(
-        ForeignKey('users.id'), # ForeignKey will only give you the database-level relationship/constraint, not an ORM-level.
-        nullable=False
+        nullable=False,
+        index=True
     ) # This will only give you repository.user_id; no relationship between the tables users and repositories
 
     # Relationships are explicitly defined to access the table, like 'repository.user', or 'user.repositories'.

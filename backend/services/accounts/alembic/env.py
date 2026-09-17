@@ -7,23 +7,17 @@ from alembic import context
 
 from app.core.config import settings
 
-# ADDITION 2:
-# Import the actual Base model to access the metadata
-from app.db.base import Base
-
-# ADDITION 4:
-# Load the tables by importing the classes so that Alembic can discover them with 'base.metadata'
-import app.db # We can import the db directory itself, since we made its __init__ file the central place of import.
+from services.accounts.models import User
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-config = context.config # Connects with alembic.ini
+config = context.config
 
 # ADDITION 1:
 # Replace the placeholder URL with the actual database URL from 'settings'
 config.set_main_option(
     'sqlalchemy.url', # The sqlalchemy.url line from the alembic.ini file.
-    settings.database_url.replace('%', '%%') # Replace it with the actual database URL from settings
+    settings.accounts_database_url.replace('%', '%%') # Replace it with the actual database URL from settings
 )
 
 # Interpret the config file for Python logging.
@@ -31,13 +25,11 @@ config.set_main_option(
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# ADDITION 3 (Change/Update the value from 'None' to the actual 'Base.metadata'):
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-
-target_metadata = Base.metadata # Connect with the Base model's metadata
+target_metadata = User.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

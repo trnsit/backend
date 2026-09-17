@@ -1,0 +1,22 @@
+# PORTS TRAEFIK LISTENS TO
+entryPoints:
+  web:
+    address: ':8000' # Public API Gateway port
+
+  traefik:
+    address: ':8080' # Traefik Web Dashboard port
+
+# ENABLE THE TRAEFIK WEB DASHBOARD
+api:
+  dashboard: true
+  insecure: true # Allows local dev without SSL
+
+# FILE PROVIDERS
+providers:
+  file:
+    filename: 'C:/Users/Hisham Ali/Documents/Transit/backend/gateway/dynamic.yml'
+    watch: true # Watch 'dynamic.yml' for live routing changes without restarting
+
+# LOGGING LEVEL
+log:
+  level: INFO

@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base
+from .db.base import Base
 
 class User(Base):
     __tablename__ = 'users'

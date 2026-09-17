@@ -23,11 +23,11 @@ re.compile() takes a string and produces a re.Pattern object. Instead of using t
 
 RULES = {
     # Future-Proof against Quantum Computers
-    "POST_QUANTUM": {
-        "ML-KEM/Kyber": re.compile(r"\b(kyber|ml-kem)\b", re.IGNORECASE),
-        "ML-DSA/Dilithium": re.compile(r"\b(dilithium|ml-dsa)\b", re.IGNORECASE),
-        "FN-DSA/Falcon": re.compile(r"\b(falcon|fn-dsa)\b", re.IGNORECASE),
-        "SLH-DSA/SPHINCS+": re.compile(r"\b(sphincs|slh-dsa)\b", re.IGNORECASE),
+    'POST_QUANTUM': {
+        'ML-KEM/Kyber': re.compile(r'\b(kyber|ml-kem)\b', re.IGNORECASE),
+        'ML-DSA/Dilithium': re.compile(r'\b(dilithium|ml-dsa)\b', re.IGNORECASE),
+        'FN-DSA/Falcon': re.compile(r'\b(falcon|fn-dsa)\b', re.IGNORECASE),
+        'SLH-DSA/SPHINCS+': re.compile(r'\b(sphincs|slh-dsa)\b', re.IGNORECASE),
     },
 
     """ 'r' - Raw String (protects backslashes)
@@ -36,27 +36,27 @@ RULES = {
     're.IGNORECASE' - Ignore-Case Flag """
 
     # Will be cracked when Quantum Computers arrive
-    "QUANTUM_VULNERABLE": {
-        "RSA": re.compile(r"\b(rsa|pkcs1|pkcs8|rsassa)\b", re.IGNORECASE),
-        "ECDSA": re.compile(r"\b(ecdsa|secp256k1|nistp256|nistp384|prime256v1)\b", re.IGNORECASE),
-        "ECDH/DH": re.compile(r"\b(ecdh|diffie-hellman|x25519|curve25519)\b", re.IGNORECASE),
-        "EdDSA/Ed25519": re.compile(r"\b(ed25519|eddsa|ed448)\b", re.IGNORECASE),
+    'QUANTUM_VULNERABLE': {
+        'RSA': re.compile(r'\b(rsa|pkcs1|pkcs8|rsassa)\b', re.IGNORECASE),
+        'ECDSA': re.compile(r'\b(ecdsa|secp256k1|nistp256|nistp384|prime256v1)\b', re.IGNORECASE),
+        'ECDH/DH': re.compile(r'\b(ecdh|diffie-hellman|x25519|curve25519)\b', re.IGNORECASE),
+        'EdDSA/Ed25519': re.compile(r'\b(ed25519|eddsa|ed448)\b', re.IGNORECASE),
     },
 
     # Strong Classical Symmetric Encryption
-    "QUANTUM_SAFE_CLASSICAL": {
-        "AES-256": re.compile(r"\b(aes[-_]?256|aes|rijndael)\b", re.IGNORECASE),
-        "ChaCha20": re.compile(r"\b(chacha20|poly1305)\b", re.IGNORECASE),
-        "SHA-256/SHA-512": re.compile(r"\b(sha256|sha-256|sha512|sha-512)\b", re.IGNORECASE),
-        "SHA-3": re.compile(r"\b(sha3|keccak)\b", re.IGNORECASE),
+    'QUANTUM_SAFE_CLASSICAL': {
+        'AES-256': re.compile(r'\b(aes[-_]?256|aes|rijndael)\b', re.IGNORECASE),
+        'ChaCha20': re.compile(r'\b(chacha20|poly1305)\b', re.IGNORECASE),
+        'SHA-256/SHA-512': re.compile(r'\b(sha256|sha-256|sha512|sha-512)\b', re.IGNORECASE),
+        'SHA-3': re.compile(r'\b(sha3|keccak)\b', re.IGNORECASE),
     },
  
     # Already broken TODAY even by regular computers
-    "CLASSICAL_VULNERABLE": {
-        "MD5": re.compile(r"\b(md5)\b", re.IGNORECASE),
-        "SHA-1": re.compile(r"\b(sha1|sha-1)\b", re.IGNORECASE),
-        "DES/3DES": re.compile(r"\b(des|3des|triple[-_]?des)\b", re.IGNORECASE),
-        "RC4": re.compile(r"\b(rc4|arc4)\b", re.IGNORECASE),
+    'CLASSICAL_VULNERABLE': {
+        'MD5': re.compile(r'\b(md5)\b', re.IGNORECASE),
+        'SHA-1': re.compile(r'\b(sha1|sha-1)\b', re.IGNORECASE),
+        'DES/3DES': re.compile(r'\b(des|3des|triple[-_]?des)\b', re.IGNORECASE),
+        'RC4': re.compile(r'\b(rc4|arc4)\b', re.IGNORECASE),
     }
 }
 
@@ -96,28 +96,28 @@ class PythonCryptoVisitor(ast.NodeVisitor):
         self.findings = []
 
         # We have to look for the Python packages that we use to import the algorithms from.
-        self.crypto_libs = {"cryptography", "pycryptodome", "Crypto", "hashlib", "ssl"}
+        self.crypto_libs = {'cryptography', 'pycryptodome', 'Crypto', 'hashlib', 'ssl'}
 
-    # Visit the "import ..." nodes
+    # Visit the 'import ...' nodes
     def visit_Import(self, node):
         for alias in node.names:
             if alias.name.split('.')[0] in self.crypto_libs:
-                self._add_finding(node.lineno, "Library Import", "General", f"Imported cryptographic library: {alias.name}")
+                self._add_finding(node.lineno, 'Library Import', 'General', f'Imported cryptographic library: {alias.name}')
 
         # Keep walking down the tree
         self.generic_visit(node)
 
-    # Visit the "from ... import ..." nodes
+    # Visit the 'from ... import ...' nodes
     def visit_ImportFrom(self, node):
         if node.module and node.module.split('.')[0] in self.crypto_libs:
             for alias in node.names:
-                self._add_finding(node.lineno, "Library Import", "General", f"Imported {alias.name} from {node.module}")
+                self._add_finding(node.lineno, 'Library Import', 'General', f'Imported {alias.name} from {node.module}')
 
         self.generic_visit(node)
 
     # Visit the function call nodes
     def visit_Call(self, node):
-        func_name = ""
+        func_name = ''
 
         # Method / Dotted call:
         if isinstance(node.func, ast.Attribute):
@@ -131,13 +131,13 @@ class PythonCryptoVisitor(ast.NodeVisitor):
         for category, algs in RULES.items():
             for alg_name, pattern in algs.items():
                 if pattern.findall(func_name):
-                    self._add_finding(node.lineno, category, alg_name, f"Called function: {func_name}")
+                    self._add_finding(node.lineno, category, alg_name, f'Called function: {func_name}')
 
         self.generic_visit(node)
 
     # Visit the string nodes
     def visit_Constant(self, node):
-        # Match string literals (e.g. cipher = Cipher(algorithms.AES(key), mode="AES-256"); catches "AES-256")
+        # Match string literals (e.g. cipher = Cipher(algorithms.AES(key), mode='AES-256'); catches 'AES-256')
 
         if isinstance(node.value, str):
             val = node.value
@@ -148,14 +148,14 @@ class PythonCryptoVisitor(ast.NodeVisitor):
                         self._add_finding(node.lineno, category, alg_name, f"Constant string: '{val}'")
 
     def _add_finding(self, line_number: int, category: str, algorithm: str, detail: str):
-        line_content = self.lines[line_number - 1].strip() if line_number <= len(self.lines) else ""
+        line_content = self.lines[line_number - 1].strip() if line_number <= len(self.lines) else ''
 
         self.findings.append({
-            "file": self.file_path,
-            "line_number": line_number,
-            "category": category,
-            "algorithm": algorithm,
-            "line_content": line_content[:150]
+            'file': self.file_path,
+            'line_number': line_number,
+            'category': category,
+            'algorithm': algorithm,
+            'line_content': line_content[:150]
         })
 
 
@@ -163,13 +163,13 @@ class ScanService:
     def __init__(self, scan_store: ScanStore):
         self.scan_store = scan_store
         self.scannable_extensions = {
-            ".py", ".js", ".ts", ".go", ".java", ".cpp", ".c", 
-            ".rs", ".cs", ".php", ".rb", ".swift", ".kt", ".h"
+            '.py', '.js', '.ts', '.go', '.java', '.cpp', '.c', 
+            '.rs', '.cs', '.php', '.rb', '.swift', '.kt', '.h'
         }
 
         self.ignored_dirs = {
-            "node_modules", "venv", ".venv", "env", ".git", 
-            "__pycache__", "dist", "build", ".github"
+            'node_modules', 'venv', '.venv', 'env', '.git', 
+            '__pycache__', 'dist', 'build', '.github'
         }
 
     # API CORE METHODS
@@ -193,7 +193,7 @@ class ScanService:
         user_id: UUID, 
         repository_id: UUID, 
         repo_full_name: str, 
-        token: str, 
+        token: str | None, 
         background_tasks: BackgroundTasks
     ) -> Scan:
         scan = await self.scan_store.create(repository_id, user_id)
@@ -212,7 +212,7 @@ class ScanService:
 
     # JOB ORCHESTRATOR
     # 3. Execute the scan -> scan_directory
-    async def run_scan_job(self, scan_id: UUID, full_name: str, token: str):
+    async def run_scan_job(self, scan_id: UUID, full_name: str, token: str | None = None):
         # Update status from 'pending' to 'running'
         await self.scan_store.update_status(scan_id, 'running')
 
@@ -233,8 +233,18 @@ class ScanService:
 
             # AI INTELLIGENCE AGENT ENRICHMENT
             if findings_data:
+<<<<<<< Updated upstream
                 agent = ScanIntelligenceAgent()
                 semaphore = asyncio.Semaphore(3)  # Limits concurrent Ollama requests to 3
+=======
+                # Pre-populate code context for each finding
+                for finding in findings_data:
+                    finding['code_context'] = self._get_code_context(
+                        temp_dir=temp_dir,
+                        file_path=finding['file'],
+                        line_number=finding['line_number']
+                    )
+>>>>>>> Stashed changes
 
                 async def process_finding(finding: dict):
                     async with semaphore:
@@ -245,6 +255,7 @@ class ScanService:
                             line_number=finding["line_number"]
                         )
 
+<<<<<<< Updated upstream
                         # Ask Ollama to audit it
                         audit = await agent.analyze_finding(
                             file_path=finding["file"],
@@ -262,6 +273,13 @@ class ScanService:
 
                 # Run AI analysis for all findings concurrently (gated by semaphore)
                 await asyncio.gather(*(process_finding(f) for f in findings_data))
+=======
+                # Enrich findings with results
+                for finding, audit in zip(findings_data, audit_results):
+                    finding['is_false_positive'] = audit.is_false_positive
+                    finding['agent_explanation'] = audit.agent_explanation
+                    finding['suggested_explanation'] = audit.suggested_explanation
+>>>>>>> Stashed changes
 
             await self.scan_store.save_findings(scan_id, findings_data)
             await self.scan_store.update_status(
@@ -273,7 +291,7 @@ class ScanService:
         except Exception as e:
             await self.scan_store.update_status(scan_id, 'failed')
 
-            print(f"Scan {scan_id} failed: {str(e)}")
+            print(f'Scan {scan_id} failed: {str(e)}')
 
         finally:
             # Always delete the zip file and scratchpad folder!
@@ -300,8 +318,8 @@ class ScanService:
 
             dirs[:] = [d for d in dirs if d not in self.ignored_dirs]
 
-            """ Notice "[:]" in "dirs[:]"? It's called Slice Assignment (in-place replacement).
-            If we were to write "dirs = ...", we will be creating a new variable.
+            """ Notice '[:]' in 'dirs[:]'? It's called Slice Assignment (in-place replacement).
+            If we were to write 'dirs = ...', we will be creating a new variable.
             But by using this notation, we are modifying the existing list object in-place. """
 
             for file in files:
@@ -309,19 +327,19 @@ class ScanService:
                 file_ext = os.path.splitext(file)[1].lower()
 
                 """ splitext is built by Python specifically to always find the real file extension.
-                eg: "login.py" -> ("login", ".py") """
+                eg: 'login.py' -> ('login', '.py') """
 
                 if file_ext in self.scannable_extensions:
                     # Get the full absolute path to open the file
                     full_file_path = os.path.join(root, file) # 1. Give to open() to read the file from the disk
 
-                    """ root = "C:\temp\scan_123\alice-crypto-app-9a7b\src\auth"
-                    file = "login.py"
-                    full_file_path = "C:\temp\scan_123\alice-crypto-app-9a7b\src\auth\login.py" """
+                    """ root = 'C:\temp\scan_123\alice-crypto-app-9a7b\src\auth'
+                    file = 'login.py'
+                    full_file_path = 'C:\temp\scan_123\alice-crypto-app-9a7b\src\auth\login.py' """
 
-                    """ Why not just write root + "/" + file?
+                    """ Why not just write root + '/' + file?
                     Windows uses backslashes (\) and Linux uses forward slashes (/).
-                    If you use + "/", on Windows your path becomes C:\temp/src/auth\login.py (mixed slashes that can cause crashes).
+                    If you use + '/', on Windows your path becomes C:\temp/src/auth\login.py (mixed slashes that can cause crashes).
                     os.path.join automatically uses the right slash on any computer. """
 
                     # Calculate relative path
@@ -330,7 +348,7 @@ class ScanService:
                     # Clean up the path for the dashboard
                     parts = rel_path.split(os.sep)
 
-                    # os.sep stands for "Operating System Seperator", which dynamically gives you either "/" or "\" according to the OS.
+                    # os.sep stands for 'Operating System Seperator', which dynamically gives you either '/' or '\' according to the OS.
 
                     display_path = os.path.join(*parts[1:]) if len(parts) > 1 else rel_path # 2. Saved in database and shown on the screen
 
@@ -383,7 +401,7 @@ class ScanService:
 
         # Initialize Tree-Sitter for the specific language
         parser = Parser(language)
-        tree = parser.parse(bytes(content, "utf8"))
+        tree = parser.parse(bytes(content, 'utf8'))
 
         # Walk through every node in the syntax tree (Depth-First Search)
         nodes_to_visit = [tree.root_node]
@@ -392,7 +410,7 @@ class ScanService:
             node = nodes_to_visit.pop()
 
             # Ignore comments
-            if "comment" in node.type:
+            if 'comment' in node.type:
                 continue
 
             # Scan text content in leaf nodes (identifiers, strings, function names)
@@ -406,14 +424,14 @@ class ScanService:
                                 if pattern.findall(node_text):
                                     line_num = node.start_point[0] + 1
                                     lines = content.splitlines()
-                                    line_content = lines[line_num - 1].strip() if line_num <= len(lines) else ""
+                                    line_content = lines[line_num - 1].strip() if line_num <= len(lines) else ''
 
                                     findings.append({
-                                        "file": file_path,
-                                        "line_number": line_num,
-                                        "category": category,
-                                        "algorithm": alg_name,
-                                        "line_content": line_content[:150]
+                                        'file': file_path,
+                                        'line_number': line_num,
+                                        'category': category,
+                                        'algorithm': alg_name,
+                                        'line_content': line_content[:150]
                                     })
                 except Exception:
                     pass
@@ -431,39 +449,41 @@ class ScanService:
                 for alg_name, pattern in algs.items():
                     if pattern.findall(line):
                         findings.append({
-                            "file": file_path,
-                            "line_number": line_num,
-                            "category": category,
-                            "algorithm": alg_name,
-                            "line_content": line.strip()[:150]
+                            'file': file_path,
+                            'line_number': line_num,
+                            'category': category,
+                            'algorithm': alg_name,
+                            'line_content': line.strip()[:150]
                         })
         return findings
 
     # ZIPBALL DOWNLOADS
-    async def download_github_zip(self, full_name: str, token: str) -> str:
-        url = f"https://api.github.com/repos/{full_name}/zipball"
+    async def download_github_zip(self, full_name: str, token: str | None = None) -> str:
+        url = f'https://api.github.com/repos/{full_name}/zipball'
 
         headers = {
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "Transit-App"
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'Transit-App'
         }
+
+        if token:
+            headers['authorization'] = f'token {token}'
 
         async with httpx.AsyncClient(follow_redirects=True) as client:
             # Ask GitHub for the zip bytes over HTTP
             response = await client.get(url, headers=headers)
 
             if response.status_code != 200:
-                raise Exception(f"Failed to download repository zipball: {response.text}")
+                raise Exception(f'Failed to download repository zipball: {response.text}')
 
             # Create an empty file on the hard drive
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
 
             # Pour GitHub's zip bytes into that file
             temp_file.write(response.content)
             temp_file.close()
 
-            """ "Downloading a file" in Python means asking GitHub for the .zip bytes over the internet,
+            """ 'Downloading a file' in Python means asking GitHub for the .zip bytes over the internet,
             creating an empty file on disk with NamedTemporaryFile(), and saving those bytes into it. """
 
             # Return the path of that saved zip file
@@ -481,7 +501,7 @@ class ScanService:
             dirs = [d for d in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, d))]
 
             if not dirs:
-                return ""
+                return ''
 
             full_path = os.path.join(temp_dir, dirs[0], file_path)
 
@@ -493,7 +513,7 @@ class ScanService:
             end = min(len(lines), line_number + range_lines)
 
             # Return the combined 20 lines of code as string
-            return "".join(lines[start:end])
+            return ''.join(lines[start:end])
 
         except Exception:
-            return ""
+            return ''

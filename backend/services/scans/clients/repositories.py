@@ -10,6 +10,7 @@ from pydantic import BaseModel
 class RepositoryInfo(BaseModel):
     id: UUID
     full_name: str
+    is_private: bool = False
 
 class RepositoriesClient:
     def __init__(self, base_url: str | None = None):
