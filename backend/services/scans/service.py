@@ -233,53 +233,35 @@ class ScanService:
 
             # AI INTELLIGENCE AGENT ENRICHMENT
             if findings_data:
-<<<<<<< Updated upstream
                 agent = ScanIntelligenceAgent()
                 semaphore = asyncio.Semaphore(3)  # Limits concurrent Ollama requests to 3
-=======
-                # Pre-populate code context for each finding
-                for finding in findings_data:
-                    finding['code_context'] = self._get_code_context(
-                        temp_dir=temp_dir,
-                        file_path=finding['file'],
-                        line_number=finding['line_number']
-                    )
->>>>>>> Stashed changes
 
                 async def process_finding(finding: dict):
                     async with semaphore:
                         # Extract the code context around the matched line
                         context = self._get_code_context(
                             temp_dir=temp_dir, 
-                            file_path=finding["file"], 
-                            line_number=finding["line_number"]
+                            file_path=finding['file'], 
+                            line_number=finding['line_number']
                         )
 
-<<<<<<< Updated upstream
                         # Ask Ollama to audit it
                         audit = await agent.analyze_finding(
-                            file_path=finding["file"],
-                            line_number=finding["line_number"],
-                            category=finding["category"],
-                            algorithm=finding["algorithm"],
-                            matched_line=finding["line_content"],
+                            file_path=finding['file'],
+                            line_number=finding['line_number'],
+                            category=finding['category'],
+                            algorithm=finding['algorithm'],
+                            matched_line=finding['line_content'],
                             code_context=context
                         )
 
                         # Enrich the finding dict
-                        finding["is_false_positive"] = audit.is_false_positive
-                        finding["agent_explanation"] = audit.agent_explanation
-                        finding["suggested_explanation"] = audit.suggested_explanation
+                        finding['is_false_positive'] = audit.is_false_positive
+                        finding['agent_explanation'] = audit.agent_explanation
+                        finding['suggested_explanation'] = audit.suggested_explanation
 
                 # Run AI analysis for all findings concurrently (gated by semaphore)
                 await asyncio.gather(*(process_finding(f) for f in findings_data))
-=======
-                # Enrich findings with results
-                for finding, audit in zip(findings_data, audit_results):
-                    finding['is_false_positive'] = audit.is_false_positive
-                    finding['agent_explanation'] = audit.agent_explanation
-                    finding['suggested_explanation'] = audit.suggested_explanation
->>>>>>> Stashed changes
 
             await self.scan_store.save_findings(scan_id, findings_data)
             await self.scan_store.update_status(
