@@ -91,20 +91,57 @@ http:
   services:
     accounts-service:
       loadBalancer:
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
+
+        # In Traefik, 'healthCheck' automatically monitors whether your microservices are alive and working.
+
+        # Here is how it works:
+          # 1. Periodic Probing
+            # Every interval (e.g. 10 seconds), Traefik sends a background HTTP GET request to each microservice:
+              # http://127.0.0.1:8001/health
+              # http://127.0.0.1:8002/health
+              # http://127.0.0.1:8003/health
+              # http://127.0.0.1:8004/health
+
+          # 2. Status Assessment
+            # Healthy (200 OK within 3s): Traefik keeps sending user requests to that service.
+            # Unhealthy (Crashed, offline, or returns an error):
+              # Traefik immediately marks the service as DOWN.
+              # It stops routing traffic to that dead instance (avoiding long connection timeouts and frozen requests for users).
+              # When the service recovers and /health responds with 200 OK again, Traefik automatically restores traffic to it without needing a restart.
+
+          # 3. Traefik Dashboard Visibility
+           # If you open the Traefik dashboard at http://localhost:8080, each service will show a real-time Green (healthy) or Red (unhealthy) badge based on these probes.
+
         servers:
           - url: "http://127.0.0.1:8001"
 
     repositories-service:
       loadBalancer:
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
         servers:
           - url: "http://127.0.0.1:8002"
 
     scans-service:
       loadBalancer:
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
         servers:
           - url: "http://127.0.0.1:8003"
 
     intelligence-service:
       loadBalancer:
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
         servers:
           - url: 'http://127.0.0.1:8004'
