@@ -8,6 +8,8 @@ ENV_FILE_PATH = Path(__file__).resolve().parents[2] / ".env"
 class BaseServiceSettings(BaseSettings):
     debug: bool
 
+    frontend_url: str = 'http://localhost:3000'
+
     secret_key: str
     jwt_algorithm: str = 'HS256'
 

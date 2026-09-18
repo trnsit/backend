@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .db.session import get_session
 from app.security.jwt import decode_access_token
@@ -17,7 +17,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login') # Use standard url or reg
     2. Strips away the word "Bearer " and extracts just the raw token string.
     3. Adds the little Green Padlock / "Authorize" button in FastAPI's Swagger UI documentation. """
 
-def get_user_store(session: Session = Depends(get_session)) -> UserStore:
+def get_user_store(session: AsyncSession = Depends(get_session)) -> UserStore:
     return UserStore(session)
 
 def get_user_service(user_store: UserStore = Depends(get_user_store)) -> UserService:
@@ -41,5 +41,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), service: UserSer
     user = await service.store.authenticate(email)
     if user is None:
         raise credentials_exception
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail='User account is inactive or disabled'
+        )
         
     return user

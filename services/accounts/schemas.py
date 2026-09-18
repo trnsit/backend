@@ -2,7 +2,7 @@ from datetime import datetime
 
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 class Login(BaseModel):
     email: EmailStr
@@ -10,7 +10,7 @@ class Login(BaseModel):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128, description='Password must be at least 8 characters long.')
 
 class UserResponse(BaseModel):
     id: UUID

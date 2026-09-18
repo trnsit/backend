@@ -114,12 +114,24 @@ async def google_callback(
         userinfo = userinfo_response.json()
         email = userinfo.get('email')
 
-        if not email:
+        if email:
+            email = email.strip().lower()
+
+        else:
             raise HTTPException(status_code=400, detail='Google account has no email address.')
+
+        if not userinfo.get('email_verified', False):
+            raise HTTPException(status_code=400, detail='Google email is not verified.')
 
     # 4. Check if user already exists in local database:
     user_query = await session.execute(select(User).where(User.email == email))
     user = user_query.scalar_one_or_none()
+
+    if user and not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail='User account is inactive or disabled'
+        )
 
     # Create a new user since they are signing up via Google
     if not user:
@@ -172,9 +184,9 @@ async def google_callback(
     await session.commit()
 
     # 6. Generate our own local JWT access token for this user
-    local_access_token = create_access_token(data={'sub': user.email, 'user_id': str(user.id)})
+    local_access_token = create_access_token(data={'sub': user.email, 'user_id': str(user.id), 'is_active': user.is_active})
 
     # Redirect back to the frontend login-success handler page
     return RedirectResponse(
-        url=f'http://localhost:3000/login-success?token={local_access_token}'
+        url=f'{settings.frontend_url}/login-success?token={local_access_token}'
     )

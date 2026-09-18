@@ -2,7 +2,7 @@ from datetime import datetime
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, func
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db.base import Base
@@ -68,6 +68,11 @@ class User(Base):
 
 class UserOAuthToken(Base):
     __tablename__ = 'user_oauth_tokens'
+
+    # Table-wide Constraints
+    __table_args__ = (
+        UniqueConstraint('user_id', 'provider', name='uq_user_oauth_provider'),
+    )
 
     id: Mapped[UUID] = mapped_column(
         primary_key=True,

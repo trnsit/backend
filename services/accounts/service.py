@@ -12,8 +12,8 @@ class UserService:
         self.store = user_store
 
     # Make the method capable of receiving email, and getting the user object by the use of UserService
-    async def authenticate(self, email) -> UserResponse:
-        user = await self.store.authenticate(email)
+    async def authenticate(self, email: str) -> UserResponse:
+        user = await self.store.authenticate(email.strip().lower())
 
         if not user:
             raise HTTPException(
@@ -24,7 +24,8 @@ class UserService:
         return user
 
     async def login(self, login_data: Login) -> User:
-        user = await self.store.authenticate(login_data.email)
+        email = login_data.email.strip().lower()
+        user = await self.store.authenticate(email)
 
         if not user or not verify_password(login_data.password, user.password_hash):
             raise HTTPException(
@@ -32,10 +33,17 @@ class UserService:
                 detail='Incorrect email or password'
             )
 
+        if not user.is_active:
+            raise HTTPException(
+                status_code=403,
+                detail='User account is inactive or disabled'
+            )
+
         return user
 
     async def create(self, user: UserCreate) -> User:
-        if await self.store.authenticate(user.email):
+        email = user.email.strip().lower()
+        if await self.store.authenticate(email):
             raise HTTPException(
                 status_code=409,
                 detail='User already exists'
@@ -44,7 +52,7 @@ class UserService:
         password_hash = hash_password(user.password)
 
         return await self.store.create(
-            email=user.email,
+            email=email,
             password_hash=password_hash
         )
 
