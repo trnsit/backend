@@ -32,6 +32,12 @@ class UserService:
                 detail='Incorrect email or password'
             )
 
+        if not user.is_active:
+            raise HTTPException(
+                status_code=403,
+                detail='User account is inactive or disabled'
+            )
+
         return user
 
     async def create(self, user: UserCreate) -> User:

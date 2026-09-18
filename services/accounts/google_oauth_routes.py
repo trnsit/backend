@@ -121,6 +121,12 @@ async def google_callback(
     user_query = await session.execute(select(User).where(User.email == email))
     user = user_query.scalar_one_or_none()
 
+    if user and not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail='User account is inactive or disabled'
+        )
+
     # Create a new user since they are signing up via Google
     if not user:
         # Generate a secure random password as they authenticate via SSO
@@ -172,7 +178,7 @@ async def google_callback(
     await session.commit()
 
     # 6. Generate our own local JWT access token for this user
-    local_access_token = create_access_token(data={'sub': user.email, 'user_id': str(user.id)})
+    local_access_token = create_access_token(data={'sub': user.email, 'user_id': str(user.id), 'is_active': user.is_active})
 
     # Redirect back to the frontend login-success handler page
     return RedirectResponse(

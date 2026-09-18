@@ -19,7 +19,7 @@ async def create_user(user: UserCreate, service: UserService = Depends(get_user_
 @router.post('/login', response_model=Token)
 async def login(login_data: Login, service: UserService = Depends(get_user_service)):
     user = await service.login(login_data)
-    access_token = create_access_token(data={'sub': user.email, 'user_id': str(user.id)})
+    access_token = create_access_token(data={'sub': user.email, 'user_id': str(user.id), 'is_active': user.is_active})
 
     return {'access_token': access_token, 'token_type': 'bearer'}
 

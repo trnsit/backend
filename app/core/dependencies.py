@@ -14,6 +14,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 class CurrentUser(BaseModel):
     id: UUID
     email: str
+    is_active: bool = True
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> CurrentUser:
     credentials_exception = HTTPException(
@@ -39,7 +40,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> CurrentUser:
     except ValueError:
         raise credentials_exception
 
-    return CurrentUser(id=user_id, email=email)
+    is_active = payload.get('is_active', True)
+
+    if not is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='User account is inactive or disabled'
+        )
+
+    return CurrentUser(id=user_id, email=email, is_active=is_active)
 
 async def verify_internal_token(x_internal_token: str = Header(...)) -> None:
     """ When you declare a parameter in a FastAPI function:
