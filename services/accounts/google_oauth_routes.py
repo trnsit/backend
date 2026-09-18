@@ -114,8 +114,14 @@ async def google_callback(
         userinfo = userinfo_response.json()
         email = userinfo.get('email')
 
-        if not email:
+        if email:
+            email = email.strip().lower()
+
+        else:
             raise HTTPException(status_code=400, detail='Google account has no email address.')
+
+        if not userinfo.get('email_verified', False):
+            raise HTTPException(status_code=400, detail='Google email is not verified.')
 
     # 4. Check if user already exists in local database:
     user_query = await session.execute(select(User).where(User.email == email))
@@ -182,5 +188,5 @@ async def google_callback(
 
     # Redirect back to the frontend login-success handler page
     return RedirectResponse(
-        url=f'http://localhost:3000/login-success?token={local_access_token}'
+        url=f'{settings.frontend_url}/login-success?token={local_access_token}'
     )
