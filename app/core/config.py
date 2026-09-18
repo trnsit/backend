@@ -1,4 +1,9 @@
+import sys
+import asyncio
 from pathlib import Path
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from pydantic_settings import BaseSettings, SettingsConfigDict # Pydantic Settings is an external package, not a part of Pydantic itself.
 
