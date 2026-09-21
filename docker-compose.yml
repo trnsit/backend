@@ -1,0 +1,38 @@
+name: transit-backend
+
+services:
+  # DATABASE
+  postgres:
+    # 'postgres:17-alpine' tells Docker to pull the official PostgreSQL 17 image built on Alpine Linux.
+
+    # Alpine is an ultra-minimal Linux distro, which keeps the image download tiny (~40 MB) and fast.
+
+    image: postgres:17-alpine
+
+    container_name: transit-postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+
+      POSTGRES_DB: transit_accounts_db
+
+    ports:
+      - '5432:5432'
+
+    # DATA PERSISTENCE & INITIALIZATION
+    volumes:
+      - transit_postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d transit_accounts_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  transit_postgres_data:

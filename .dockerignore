@@ -1,0 +1,28 @@
+<!-- Environmental Variables and Secrets -->
+.env
+.env.*
+
+<!-- Virtual Environments (Linux container installs its own packages) -->
+.venv/
+venv/
+ENV/
+
+<!-- Python Caches and Compiled Bytecode -->
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+<!-- Version Control -->
+.git/
+.gitignore
+
+<!-- Logs and Local Temp Files -->
+*.log
+*.sqlite3
+
+<!-- Windows Executables and Junk Docs -->
+gateway/*.exe
+gateway/CHANGELOG.md
+gateway/LICENSE.md
