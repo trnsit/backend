@@ -93,7 +93,9 @@ http:
       loadBalancer:
         healthCheck:
           path: /health
+
           interval: "10s"
+
           timeout: "3s"
 
         # In Traefik, 'healthCheck' automatically monitors whether your microservices are alive and working.
@@ -123,8 +125,11 @@ http:
       loadBalancer:
         healthCheck:
           path: /health
+
           interval: "10s"
+
           timeout: "3s"
+
         servers:
           - url: "http://127.0.0.1:8002"
 
@@ -132,8 +137,11 @@ http:
       loadBalancer:
         healthCheck:
           path: /health
+
           interval: "10s"
+
           timeout: "3s"
+
         servers:
           - url: "http://127.0.0.1:8003"
 
@@ -141,7 +149,10 @@ http:
       loadBalancer:
         healthCheck:
           path: /health
+
           interval: "10s"
+
           timeout: "3s"
+
         servers:
           - url: 'http://127.0.0.1:8004'

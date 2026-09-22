@@ -1,7 +1,7 @@
 name: transit-backend
 
 services:
-  # DATABASE
+  # DATABASE SERVICE
   postgres:
     # 'postgres:17-alpine' tells Docker to pull the official PostgreSQL 17 image built on Alpine Linux.
 
@@ -30,9 +30,46 @@ services:
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d transit_accounts_db"]
+
       interval: 5s
+
       timeout: 5s
+
       retries: 5
+
+  # MIGRATION SERVICE
+  migrations:
+    build:
+      context: .
+
+      dockerfile: Dockerfile
+
+    container_name: transit-migrations
+
+    restart: "no"
+
+    # We put "no" in quotes because in YAML, an unquoted no is often parsed as boolean false,
+    # whereas Docker Compose expects the string "no"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    environment:
+      - ACCOUNTS_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_accounts_db
+      - REPOSITORIES_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_repositories_db
+      - SCANS_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_scans_db
+
+    command: >
+      sh -c "
+      alembic -c services/accounts/alembic.ini upgrade head &&
+      alembic -c services/repositories/alembic.ini upgrade head &&
+      alembic -c services/scans/alembic.ini upgrade head &&
+      echo 'All database migrations applied successfully!'
+      "
 
 volumes:
   transit_postgres_data:
