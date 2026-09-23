@@ -1,0 +1,227 @@
+name: transit-backend
+
+services:
+  # DATABASE SERVICE
+  postgres:
+    # 'postgres:17-alpine' tells Docker to pull the official PostgreSQL 17 image built on Alpine Linux.
+
+    # Alpine is an ultra-minimal Linux distro, which keeps the image download tiny (~40 MB) and fast.
+
+    image: postgres:17-alpine
+
+    container_name: transit-postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+
+      POSTGRES_DB: transit_accounts_db
+
+    ports:
+      - '5432:5432'
+
+    # DATA PERSISTENCE & INITIALIZATION
+    volumes:
+      - transit_postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d transit_accounts_db"]
+
+      interval: 5s
+
+      timeout: 5s
+
+      retries: 5
+
+  # MIGRATION SERVICE
+  migrations:
+    build:
+      context: .
+
+      dockerfile: Dockerfile
+
+    container_name: transit-migrations
+
+    restart: "no"
+
+    # We put "no" in quotes because in YAML, an unquoted no is often parsed as boolean false,
+    # whereas Docker Compose expects the string "no".
+
+    depends_on:
+      postgres:
+        condition: service_healthy # Run postgres' healtcheck test and see if it's "healthy"
+
+    env_file:
+      - .env
+
+    environment:
+      - ACCOUNTS_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_accounts_db
+      - REPOSITORIES_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_repositories_db
+      - SCANS_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_scans_db
+
+    command: >
+      sh -c "
+      alembic -c services/accounts/alembic.ini upgrade head &&
+      alembic -c services/repositories/alembic.ini upgrade head &&
+      alembic -c services/scans/alembic.ini upgrade head &&
+      echo 'All database migrations applied successfully!'
+      "
+
+  # ACCOUNTS SERVICE
+  accounts:
+    build:
+      context: .
+
+      dockerfile: Dockerfile
+
+    container_name: transit-accounts
+
+    restart: always
+
+    command: uvicorn services.accounts.main:app --host 0.0.0.0 --port 8001
+
+    # Default host address would be 127.0.0.1 (localhost);
+    # even though any server that's inside a container,
+    # we define 0.0.0.0 explicitly for external servers can access this closed server.
+
+    depends_on:
+      migrations:
+        condition: service_completed_successfully # Wait for the service to do its entire job and return 0 (Success)
+
+    env_file:
+      - .env
+
+    environment:
+      - ACCOUNTS_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_accounts_db
+
+    ports:
+      - '8001:8001' # The format is: "HOST_PORT:CONTAINER_PORT"
+
+  # REPOSITORIES SERVICE
+  repositories:
+    build:
+      context: .
+
+      dockerfile: Dockerfile
+
+    container_name: transit-repositories
+
+    restart: always
+
+    command: uvicorn services.repositories.main:app --host 0.0.0.0 --port 8002
+
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+    env_file:
+      - .env
+
+    environment:
+      - REPOSITORIES_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_repositories_db
+      - ACCOUNTS_SERVICE_URL=http://accounts:8001
+
+    ports:
+      - '8002:8002'
+
+  # SCANS SERVICE
+  scans:
+    build:
+      context: .
+
+      dockerfile: Dockerfile
+
+    container_name: transit-scans
+
+    restart: always
+
+    command: uvicorn services.scans.main:app --host 0.0.0.0 --port 8003
+
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+    env_file:
+      - .env
+
+    environment:
+      - SCANS_DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/transit_scans_db
+      - ACCOUNTS_SERVICE_URL=http://accounts:8001
+      - REPOSITORIES_SERVICE_URL=http://repositories:8002
+      - INTELLIGENCE_SERVICE_URL=http://intelligence:8004
+
+    ports:
+      - '8003:8003'
+
+  # INTELLIGENCE SERVICE
+  intelligence:
+    build:
+      context: .
+
+      dockerfile: Dockerfile
+
+    container_name: transit-intelligence
+
+    restart: always
+
+    command: uvicorn services.intelligence.main:app --host 0.0.0.0 --port 8004
+
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+    env_file:
+      - .env
+
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+    # Docker provides a special internal DNS hostname called 'host.docker.internal'.
+    # From inside any Docker container, host.docker.internal resolves to the IP address of your physical computer (Windows host).
+
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+    # On Docker Desktop (Windows/Mac), host.docker.internal often works automatically.
+    # On Linux (or CI/CD pipelines like GitHub Actions), Docker on Linux does not create host.docker.internal by default! Containers on Linux would fail to resolve the hostname.
+    # extra_hosts adds an entry into the container's internal /etc/hosts file: host-gateway -> host.docker.internal
+    # host-gateway is a special Docker keyword that automatically grabs the gateway IP of your host machine.
+
+    ports:
+      - '8004:8004'
+
+  # 7. API GATEWAY: Traefik
+  gateway:
+    image: traefik:v2.11
+
+    container_name: transit-gateway
+
+    restart: always
+
+    command:
+      - "--entrypoints.web.address=:8000"
+      - "--entrypoints.traefik.address=:8080"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.file.filename=/etc/traefik/dynamic.docker.yml"
+      - "--providers.file.watch=true"
+
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+
+    volumes:
+      - ./gateway/dynamic.docker.yml:/etc/traefik/dynamic.docker.yml:ro
+
+    depends_on:
+      - accounts
+      - repositories
+      - scans
+      - intelligence
+
+volumes:
+  transit_postgres_data:

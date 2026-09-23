@@ -1,38 +1,38 @@
-# Environment variables and secrets
+# Environment Variables and Secrets
 .env
 *.env
 .env.*
 !.env.example
 
-# Binaries and executables (e.g. traefik.exe)
+# Binaries and Executables (e.g. traefik.exe)
 *.exe
 *.dll
 *.so
 *.dylib
 
-# Virtual environments
+# Virtual Environments
 venv/
 .venv/
 env/
 ENV/
 
-# Python cache and compiled files
+# Python Caches and Compiled Files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 
-# Distribution / packaging
+# Distribution/Packaging
 build/
 dist/
 *.egg-info/
 
-# Unit tests and coverage
+# Unit Tests and Coverage
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Local databases and logs
+# Local Databases and Logs
 *.sqlite3
 *.db
 *.log
@@ -43,6 +43,6 @@ htmlcov/
 *.swp
 *.swo
 
-# OS files
+# OS Files
 .DS_Store
 Thumbs.db
