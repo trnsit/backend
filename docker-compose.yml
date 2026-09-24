@@ -194,7 +194,7 @@ services:
     ports:
       - '8004:8004'
 
-  # 7. API GATEWAY: Traefik
+  # API GATEWAY: TRAEFIK
   gateway:
     image: traefik:v2.11
 
@@ -223,5 +223,21 @@ services:
       - scans
       - intelligence
 
+  # VECTOR DATABASE SERVIE: QDRANT
+  qdrant:
+    image: qdrant/qdrant:latest
+
+    container_name: transit-qdrant
+
+    restart: always
+
+    ports:
+      - "6333:6333" # REST API & Web Dashboard
+      - "6334:6334" # gRPC API
+
+    volumes:
+      - transit_qdrant_data:/qdrant/storage
+
 volumes:
   transit_postgres_data:
+  transit_qdrant_data:
