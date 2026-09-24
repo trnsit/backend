@@ -1,10 +1,11 @@
-from .schemas import FindingAuditRequest, FindingAuditResponse
-from ..core.base import BaseAgent
 from ...rag.vector_store import VectorStore
+from ..core.base import BaseAgent
+from .schemas import FindingAuditRequest, FindingAuditResponse
 
 class CryptoAuditAgent(BaseAgent):
     def __init__(self, model_name: str | None = None, base_url: str | None = None, vector_store: VectorStore | None = None):
         super().__init__(model_name=model_name, base_url=base_url)
+
         self.vector_store = vector_store or VectorStore()
 
     def _build_prompt(self, request: FindingAuditRequest, rag_context: str) -> str:
