@@ -20,7 +20,7 @@ async def trigger_scan(
     service: ScanService = Depends(get_scan_service),
     accounts_client: AccountsClient = Depends(get_accounts_client),
     repos_client: RepositoriesClient = Depends(get_repositories_client)
-):
+) -> ScanResponse:
     """ BackgroundTasks is a special built-in "VIP" type in FastAPI (also are Request, Response, and WebSocket)
     that it recognizes instantly without needing Depends. """
 
@@ -56,7 +56,7 @@ async def get_scan_details(
     scan_id: UUID,
     user: CurrentUser = Depends(get_current_user),
     service: ScanService = Depends(get_scan_service)
-):
+) -> ScanResponse:
     return await service.get_scan(user.id, scan_id)
 
 @router.get('/repository/{repository_id}', response_model=list[ScanResponse])
@@ -64,5 +64,5 @@ async def list_scans_by_repository(
     repository_id: UUID,
     user: CurrentUser = Depends(get_current_user),
     service: ScanService = Depends(get_scan_service)
-):
+) -> list[ScanResponse]:
     return await service.list_scans(user.id, repository_id)

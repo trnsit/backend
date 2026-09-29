@@ -14,12 +14,16 @@ class BaseAgent:
             self,
             messages: list[dict],
             format: str | None = 'json',
+            temperature: float = 0.1,
             timeout: float = 90.0
     ) -> str:
         payload = {
             'model': self.model_name,
             'messages': messages,
-            'stream': False
+            'stream': False,
+            'options': {
+                'temperature': temperature
+            }
         }
 
         if format:

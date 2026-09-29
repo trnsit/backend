@@ -12,9 +12,9 @@ from datetime import datetime
 
 from fastapi import HTTPException, BackgroundTasks
 
+from .clients.intelligence import IntelligenceClient
 from .models import Scan
 from .store import ScanStore
-from .clients.intelligence import IntelligenceClient
 
 # CRYPTOGRAPHIC RULES/REGEXES FOR DETECTION AND CLASSIFICATION:
 """ We are creating a specific compiled pattern (a specific "detector") for each cryptographic algorithm family.
@@ -146,7 +146,7 @@ class PythonCryptoVisitor(ast.NodeVisitor):
                     if pattern.findall(val):
                         self._add_finding(node.lineno, category, alg_name, f"Constant string: '{val}'")
 
-    def _add_finding(self, line_number: int, category: str, algorithm: str, detail: str):
+    def _add_finding(self, line_number: int, category: str, algorithm: str, detail: str) -> None:
         line_content = self.lines[line_number - 1].strip() if line_number <= len(self.lines) else ''
 
         self.findings.append({
@@ -212,7 +212,7 @@ class ScanService:
 
     # JOB ORCHESTRATOR
     # 3. Execute the scan -> scan_directory
-    async def run_scan_job(self, scan_id: UUID, full_name: str, token: str | None = None):
+    async def run_scan_job(self, scan_id: UUID, full_name: str, token: str | None = None) -> None:
         # Update status from 'pending' to 'running'
         await self.scan_store.update_status(scan_id, 'running')
 
@@ -458,7 +458,7 @@ class ScanService:
             # Return the path of that saved zip file
             return temp_file.name
 
-    def extract_zip(self, zip_path: str, extract_to: str):
+    def extract_zip(self, zip_path: str, extract_to: str) -> None:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_to)
 

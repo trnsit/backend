@@ -15,7 +15,7 @@ class VectorStore:
         self.client = AsyncQdrantClient(url=self.url)
 
     # Creates the Qdrant collection if it doesn't already exist.
-    async def init_collection(self):
+    async def init_collection(self) -> None:
         collections = await self.client.get_collections()
         existing_names = [col.name for col in collections.collections]
 
@@ -31,7 +31,7 @@ class VectorStore:
             print(f"Created Qdrant collection '{COLLECTION_NAME}' successfully.")
 
     # Embeds text and saves it into Qdrant as a Point.
-    async def add_document(self, title: str, category: str, content: str, source: str = 'NIST'):
+    async def add_document(self, title: str, category: str, content: str, source: str = 'NIST') -> None:
         vector = await get_embedding(content)
         point = models.PointStruct(
             id=str(uuid4()),

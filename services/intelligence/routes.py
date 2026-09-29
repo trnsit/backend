@@ -16,7 +16,7 @@ router = APIRouter(
 async def audit_finding(
         request: FindingAuditRequest,
         service: IntelligenceService = Depends(get_intelligence_service)
-):
+) -> FindingAuditResponse:
     return await service.audit_finding(request)
 
 @router.post('/audit/batch', response_model=BatchAuditResponse, status_code=status.HTTP_200_OK)
@@ -24,5 +24,5 @@ async def audit_finding(
 async def audit_batch(
         request: BatchAuditRequest,
         service: IntelligenceService = Depends(get_intelligence_service)
-):
+) -> BatchAuditResponse:
     return await service.batch_finding(request)

@@ -5,13 +5,11 @@ class MigrationPlanRequest(BaseModel):
     line_number: int
     algorithm: str
     category: str
-    code_context: str
+    code_content: str # Full file content
     target_standard: str | None = None  # eg. ML-DSA-65 (FIPS 204)
 
 class MigrationPlanResponse(BaseModel):
-    original_code: str = Field(description='The exact snippet of code to be replaced')
-    migrated_code: str = Field(description='The modern, quantum-safe replacement code')
-    unified_diff: str = Field(description='A git-style unified diff showing lines removed with - and lines added with +')
-    explanation: str = Field(description='Clear explanation of the changes made and any new imports required')
-    library_required: str = Field(description="Python package or dependency required, e.g. 'oqs-python' or 'cryptography'")
-    complexity: str = Field(description='Migration complexity: LOW, MEDIUM, or HIGH')
+    migrated_file_content: str = Field(description='The complete, updated file content with modern imports and quantum-safe code')
+    explanation: str = Field(default='Migrated to post-quantum cryptography.', description='Clear explanation of the changes made and any new imports required')
+    library_required: str = Field(default='oqs-python', description="Python package or dependency required, e.g. 'oqs-python' or 'cryptography'")
+    complexity: str = Field(default='LOW', description='Migration complexity: LOW, MEDIUM, or HIGH')

@@ -13,23 +13,23 @@ router = APIRouter(tags=['accounts'])
 # AUTH ENDPOINTS:
 @router.post('/register', response_model=UserResponse)
 # Pass the get_user_service function as the dependency
-async def create_user(user: UserCreate, service: UserService = Depends(get_user_service)):  # The Depends function represents the function as the dependency for FastAPI to manage its lifecycle.
+async def create_user(user: UserCreate, service: UserService = Depends(get_user_service)) -> UserResponse:  # The Depends function represents the function as the dependency for FastAPI to manage its lifecycle.
     return await service.create(user)
 
 @router.post('/login', response_model=Token)
-async def login(login_data: Login, service: UserService = Depends(get_user_service)):
+async def login(login_data: Login, service: UserService = Depends(get_user_service)) -> dict[str, str]:
     user = await service.login(login_data)
     access_token = create_access_token(data={'sub': user.email, 'user_id': str(user.id), 'is_active': user.is_active})
 
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 @router.get('/users/me', response_model=UserResponse)
-async def profile(current_user = Depends(get_current_user)):
+async def profile(current_user = Depends(get_current_user)) -> UserResponse:
     return current_user
 
 # INTERNAL COMMUNICATION ENDPOINT:
 @router.get('/internal/users/{user_id}/tokens/{provider}', dependencies=[Depends(verify_internal_token)]) # Runs the dependency even before someone accessess the endpoint.
-async def get_user_auth_token(user_id: UUID, provider: str, service: UserService = Depends(get_user_service)):
+async def get_user_auth_token(user_id: UUID, provider: str, service: UserService = Depends(get_user_service)) -> dict[str, str]:
     token = await service.get_oauth_token(user_id, provider)
 
     if not token:

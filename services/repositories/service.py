@@ -51,7 +51,7 @@ class RepositoryService:
 
         return result
 
-    async def list_github_repositories(self, token: str):
+    async def list_github_repositories(self, token: str) -> list[dict]:
         async with httpx.AsyncClient() as client:
             headers = {
                 'Authorization': f'token {token}',
