@@ -12,5 +12,5 @@ app = FastAPI(
 app.include_router(intelligence_router)
 
 @app.get('/health', tags=['health'])
-async def health():
+async def health() -> dict[str, str]:
     return {'status': 'healthy', 'service': 'intelligence'}

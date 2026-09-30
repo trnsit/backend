@@ -16,5 +16,5 @@ app.include_router(google_oauth_router)
 app.include_router(github_oauth_router)
 
 @app.get('/health', tags=['health'])
-async def health():
+async def health() -> dict[str, str]:
     return {'status': 'healthy', 'service': 'accounts'}

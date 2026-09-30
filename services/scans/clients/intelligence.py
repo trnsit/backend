@@ -4,6 +4,7 @@ import httpx
 from pydantic import BaseModel
 
 from services.scans.config import settings
+from services.intelligence.agents.audit.schemas import FindingAuditResponse
 
 class AuditResult(BaseModel):
     is_false_positive: bool
@@ -14,7 +15,7 @@ class IntelligenceClient:
     def __init__(self, base_url: str | None = None):
         self.base_url = base_url or os.getenv('INTELLIGENCE_SERVICE_URL', 'http://127.0.0.1:8004')
 
-    async def audit_batch(self, findings: list[dict]):
+    async def audit_batch(self, findings: list[dict]) -> list[FindingAuditResponse]:
         payload = {
             'findings': [
                 {

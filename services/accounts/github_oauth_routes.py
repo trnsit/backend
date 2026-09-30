@@ -20,7 +20,7 @@ from .models import User, UserOAuthToken
 router = APIRouter(prefix='/auth/github', tags=['github-oauth'])
 
 @router.get('/login')
-async def get_github_login_url():
+async def get_github_login_url() -> dict[str, str]:
     state_token = create_access_token(
         data={'purpose': 'github_state'},
         expires_delta=timedelta(minutes=10)
@@ -38,7 +38,7 @@ async def get_github_login_url():
     return {'url': authorization_url}
 
 @router.get('/callback')
-async def github_callback(code: str, state: str, session: AsyncSession = Depends(get_session)):
+async def github_callback(code: str, state: str, session: AsyncSession = Depends(get_session)) -> RedirectResponse:
     # Verify CSRF state token
     payload = decode_access_token(state)
 
