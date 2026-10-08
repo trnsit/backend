@@ -11,10 +11,14 @@ from .service import UserService
 router = APIRouter(tags=['accounts'])
 
 # AUTH ENDPOINTS:
-@router.post('/register', response_model=UserResponse)
-# Pass the get_user_service function as the dependency
-async def create_user(user: UserCreate, service: UserService = Depends(get_user_service)) -> UserResponse:  # The Depends function represents the function as the dependency for FastAPI to manage its lifecycle.
-    return await service.create(user)
+@router.post('/register', response_model=Token)
+async def create_user(user: UserCreate, service: UserService = Depends(get_user_service)) -> dict[str, str]:
+    new_user = await service.create(user)
+    access_token = create_access_token(
+        data={'sub': new_user.email, 'user_id': str(new_user.id), 'is_active': new_user.is_active}
+    )
+
+    return {'access_token': access_token, 'token_type': 'bearer'}
 
 @router.post('/login', response_model=Token)
 async def login(login_data: Login, service: UserService = Depends(get_user_service)) -> dict[str, str]:
