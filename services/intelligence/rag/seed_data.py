@@ -93,7 +93,7 @@ async def seed():
     print(f'Seeding {len(KNOWLEDGE_DOCUMENTS)} PQC knowledge documents...')
 
     for idx, doc in enumerate(KNOWLEDGE_DOCUMENTS, start=1):
-        print(f'[{idx}/{len(KNOWLEDGE_DOCUMENTS)}] Embedding & inserting: {doc['title']}')
+        print(f"[{idx}/{len(KNOWLEDGE_DOCUMENTS)}] Embedding & inserting: {doc['title']}")
 
         await store.add_document(
             title=doc['title'],

@@ -51,7 +51,7 @@ class MigrationPlannerAgent(BaseAgent):
             docs = await self.vector_store.search(query, limit=2)
 
             if docs:
-                rag_guidance = '\n\n'.join([f'[{d.get('title')}]: {d.get('content')}' for d in docs])
+                rag_guidance = '\n\n'.join([f"[{d.get('title')}]: {d.get('content')}" for d in docs])
 
         except Exception as e:
             print(f'Warning: Qdrant lookup failed during migration planning: {e}')

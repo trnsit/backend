@@ -6,7 +6,7 @@ async def get_embedding(text: str) -> list[float]:
     url = f"{settings.ollama_base_url.rstrip('/')}/api/embeddings"
 
     payload = {
-        'model': settings.qdrant_embedding_model,
+        'model': settings.ollama_embedding_model,
         'prompt': text
     }
 
