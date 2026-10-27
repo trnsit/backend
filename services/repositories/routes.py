@@ -28,8 +28,8 @@ async def update_repository(data: RepositoryUpdate, repository_id: UUID, user: C
     return await service.update(user.id, repository_id, data)
 
 @router.delete('/{repository_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def delete_repository(repository_id: UUID, user: CurrentUser = Depends(get_current_user), service: RepositoryService = Depends(get_repository_service)) -> bool:
-    return await service.delete(user.id, repository_id)
+async def delete_repository(repository_id: UUID, user: CurrentUser = Depends(get_current_user), service: RepositoryService = Depends(get_repository_service)) -> None:
+    await service.delete(user.id, repository_id)
 
 # REMOTE REPOSITORY ENDPOINT:
 @router.get('/github/remote', response_model=list[RepositoryCreate])

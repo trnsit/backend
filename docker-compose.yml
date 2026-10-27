@@ -174,11 +174,15 @@ services:
       migrations:
         condition: service_completed_successfully
 
+      qdrant:
+        condition: service_started
+
     env_file:
       - .env
 
     environment:
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - QDRANT_URL=http://qdrant:6333
 
     # Docker provides a special internal DNS hostname called 'host.docker.internal'.
     # From inside any Docker container, host.docker.internal resolves to the IP address of your physical computer (Windows host).
