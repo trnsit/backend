@@ -102,7 +102,7 @@ async def seed():
             source=doc['source']
         )
 
-    print('\n✅ Knowledge base successfully seeded in Qdrant!')
+    print('\n Knowledge base successfully seeded in Qdrant!')
 
 if __name__ == '__main__':
     asyncio.run(seed())
